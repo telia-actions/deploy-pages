@@ -1,7 +1,10 @@
 const core = require('@actions/core')
 const axios = require('axios')
 const axiosRetry = require('axios-retry')
+const { createProxyAgent } = require('./create-proxy-agent')
+
 const retryAttempt = 3
+const proxyAgent = createProxyAgent()
 
 axiosRetry(axios, {
   retries: retryAttempt,
@@ -33,7 +36,9 @@ async function emitTelemetry() {
           Accept: 'application/vnd.github.v3+json',
           Authorization: `Bearer ${deployment.githubToken}`,
           'Content-type': 'application/json'
-        }
+        },
+        proxy: false,
+        httpsAgent: proxyAgent
       }
     )
     .catch(err => {

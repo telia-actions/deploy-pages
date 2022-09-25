@@ -5,12 +5,14 @@ const axios = require('axios')
 
 // All variables we need from the runtime are loaded here
 const getContext = require('./context')
+const { createProxyAgent } = require('./create-proxy-agent')
 
 const errorStatus = {
   unknown_status: 'Unable to get deployment status.',
   not_found: 'Deployment not found.',
   deployment_attempt_error: 'Deployment temporarily failed, a retry will be automatically scheduled...'
 }
+const proxyAgent = createProxyAgent()
 
 class Deployment {
   constructor() {
@@ -43,7 +45,9 @@ class Deployment {
         headers: {
           Authorization: `Bearer ${this.runTimeToken}`,
           'Content-Type': 'application/json'
-        }
+        },
+        proxy: false,
+        httpsAgent: proxyAgent
       })
       core.info(JSON.stringify(data))
       const artifactRawUrl = data?.value?.find(artifact => artifact.name === this.artifactName)?.url
@@ -68,7 +72,9 @@ class Deployment {
           Accept: 'application/vnd.github.v3+json',
           Authorization: `Bearer ${this.githubToken}`,
           'Content-type': 'application/json'
-        }
+        },
+        proxy: false,
+        httpsAgent: proxyAgent
       })
       this.requestedDeployment = true
       core.info(`Created deployment for ${this.buildVersion}`)
@@ -138,7 +144,9 @@ class Deployment {
         var res = await axios.get(statusUrl, {
           headers: {
             Authorization: `token ${this.githubToken}`
-          }
+          },
+          proxy: false,
+          httpsAgent: proxyAgent
         })
 
         if (res.data.status == 'succeed') {
@@ -218,7 +226,9 @@ class Deployment {
             Accept: 'application/vnd.github.v3+json',
             Authorization: `Bearer ${this.githubToken}`,
             'Content-type': 'application/json'
-          }
+          },
+          proxy: false,
+          httpsAgent: proxyAgent
         }
       )
       core.info(`Deployment cancelled with ${pagesCancelDeployEndpoint}`)
